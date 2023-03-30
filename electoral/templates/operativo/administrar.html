@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Administrar operativo{% endblock %}
+{% block links %}
+<link href="{% static 'DataTables/DataTables-1.12.1/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" />
+{% endblock %}
+{% block content %}
+<main>
+    <div class="container-fluid px-4 mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h1">{{ operativo.titulo|title }}</h1>
+            <span class="badge bg-secondary fs-5">{{ operativo.fecha|date:"d-m-Y" }}</span>
+        </div>
+        <ol class="breadcrumb mb-4 {% if user.tema == 'dark' %}text-body{% else %}text-secondary{% endif %}">
+            <li class="breadcrumb-item"><a href="{% url 'operativos' %}">Operativos</a></li>
+            <li class="breadcrumb-item">{{ operativo.titulo|title }}</li>
+        </ol>
+    </div>
+
+    <div class="col-12 col-md-6 offset-md-3 mb-4 shadow">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <div>
+                    <i class="fas fa-calendar-days me-1"></i>Datos del operativo
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="" method="post" class="px-lg-4 py-lg-2">
+                    {% csrf_token %}
+                    {{ form | crispy }}
+                    <div class="col-12 d-flex align-items-center justify-content-around mt-4 mb-0">
+                        <a class="btn btn-secondary" href="{% url 'operativos' %}" role="button">Cancelar</a>
+                        <button class="btn btn-primary" type="submit" value="Editar">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4 {% if user.tema == 'dark' %}bg-dark text-white{% else %}bg-light text-dark{% endif %} shadow">
+        <div class="card-header text-bg-secondary">
+            <i class="fas fa-table me-2"></i>Registro de asistencias
+        </div>
+        <div class="card-body table-responsive">
+            <table id="asistenciasTable" class="table table-striped w-100 {% if user.tema == 'dark' %}table-dark{% else %}table-light{% endif %}"></table>
+        </div>
+    </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/jquery-3.5.1.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/dataTables.bootstrap5.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#asistenciasTable').DataTable({
+            language: {
+                url: "{% static 'DataTables/es_ES.json' %}",
+            },
+            processing: true,
+            serverSide: true,
+            scrollX: true,
+            ordering: true,
+            paging: false,
+            pageLength: 5,
+            info: false,
+            order: [[0,'asc']],
+            ajax: {
+                url: "{% url 'datatable_asistencias' operativo.id %}",
+                method: 'GET',
+            },
+            columns: [
+                {
+                    data: "tipo",
+                    name: "tipo",
+                    title: "Tipo",
+                    className: "text-center",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "asistencia",
+                    name: "asistencia",
+                    title: "Asistencia",
+                    className: "text-start",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "beneficios",
+                    name: "beneficios",
+                    title: "Beneficios",
+                    className: "text-center",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "hora",
+                    name: "hora",
+                    title: "Hora",
+                    className: "text-center",
+                    visible: true,
+                    searchable: true,
+                },
+            ],
+            columnDefs: [
+                { className: "px-1", targets: "_all" },
+            ],
+            fnCreatedRow: function(elemt, data, iDataIndex) {
+                let beneficiosList = data.beneficios
+
+                tipo = (data.tipo === 'I')
+                ? '<span class="bg-primary rounded-circle mx-auto text-white d-flex justify-content-center align-items-center" style="width:32px;height:32px;"><i class="fas fa-user"></i></span>'
+                : '<span class="bg-success rounded-circle mx-auto text-white d-flex justify-content-center align-items-center" style="width:32px;height:32px;"><i class="fas fa-home"></i></span>';
+                $('td:eq(0)', elemt).html(tipo)
+                
+                let beneficios = ''
+                beneficiosList.forEach(b => {
+                    beneficios += (data.tipo === 'I')
+                    ? `<span class="badge bg-primary rounded-pill me-1">${b.nombre} (${b.cantidad})</span>`
+                    : `<span class="badge bg-success rounded-pill me-1">${b.nombre} (${b.cantidad})</span>`;
+                })
+                $('td:eq(2)', elemt).html(beneficios)
+
+
+            },
+        });
+    });
+</script>
+{% endblock %}

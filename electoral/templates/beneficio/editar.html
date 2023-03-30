@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Editar beneficio{% endblock %}
+{% block content %}
+<main>
+    <div class="container-fluid px-4">
+        <h1 class="mt-4">Editar beneficio</h1>
+        <ol class="breadcrumb mb-4 {% if user.tema == 'dark' %}text-body{% else %}text-secondary{% endif %}">
+            <li class="breadcrumb-item"><a href="{% url 'beneficios' %}">Benficios</a></li>
+            <li class="breadcrumb-item">{{ votante.nombre|title }}</li>
+        </ol>
+    </div>
+    <div class="col-12 col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <div>
+                    <i class="fas fa-gift me-1"></i>Modificar beneficio
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="" method="post" class="px-lg-4 py-lg-2">
+                    {% csrf_token %}
+                    {{ form | crispy }}
+                    <div class="col-12 d-flex align-items-center justify-content-around mt-4 mb-0">
+                        <a class="btn btn-secondary" href="{% url 'beneficios' %}" role="button">Cancelar</a>
+                        <button class="btn btn-primary" type="submit" value="Editar">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+{% block scripts %}
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Agregar residencia{% endblock %}
+
+{% block links %}
+<script src="{% url 'jsi18n' %}"></script>
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="container-fluid px-4 {% if user.tema == 'dark' %}text-light{% else %}text-dark{% endif %}">
+        <h1 class="mt-4">Agregar residencia</h1>
+        <ol class="breadcrumb mb-4 {% if user.tema == 'dark' %}text-body{% else %}text-secondary{% endif %}">
+            <li class="breadcrumb-item"><a href="{% url 'residencias' %}">Residencia</a></li>
+            <li class="breadcrumb-item">Agregar</li>
+        </ol>
+    </div>
+    <div class="col-12 col-md-6 mx-auto">
+        <div class="card {% if user.tema == 'dark' %}bg-dark text-light{% else %}bg-light text-dark{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-home me-2"></i>Nuevo residencia
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="" method="post" class="px-lg-4 py-lg-2">
+                    {% csrf_token %}
+                    {{ form | crispy }}
+                    
+                    <div class="col-12 d-flex align-items-center justify-content-around mt-4 mb-0">
+                        <a class="btn btn-secondary" href="{% url 'residencias' %}" role="button">Cancelar</a>
+                        <button class="btn btn-primary" type="submit" value="Agregar">Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script defer type="text/javascript">
+    const direccionInput = document.getElementById('id_direccion')
+    direccionInput.attributes.rows.value = "4"
+    direccionInput.style.resize = "none"
+    
+    $(document).ready(function() {
+        $('#div_id_votantes').addClass('overflow-hidden');
+        $('#div_id_votantes .selector').addClass('d-flex flex-column gap-4 w-auto');
+
+        // VOTANTES DISPONIBLES
+        $('#div_id_votantes .selector .selector-available').addClass('mx-auto');
+        $('#div_id_votantes .selector .selector-available h2').replaceWith('<label class="form-label text-start">Añadir residentes</label>');
+        $('#div_id_votantes .selector .selector-available p').addClass('input-group');
+        $('#div_id_votantes .selector .selector-available p label').replaceWith('<span class="input-group-text"><i class="fas fa-search text-muted"></i></span>')
+        $('#div_id_votantes .selector .selector-available p input').addClass('form-control form-control-sm');
+        $('#div_id_votantes .selector .selector-available select').addClass('form-select');
+        $('#div_id_votantes .selector .selector-available select').attr('style', 'height:unset!important;');
+        $('#div_id_votantes .selector .selector-available select').attr('size','5');
+        $('#div_id_votantes .selector .selector-available a').replaceWith('<p class="fs-8 fw-400 text-muted text-center">Mantenga presionado "Control" o "Comando" en una Mac, para seleccionar más de uno.</p>');
+
+        // BOTONES DE SELCCIÓN
+        $('#div_id_votantes .selector ul.selector-chooser').attr('style', 'transform:unset;');
+        $('#div_id_votantes .selector ul.selector-chooser li a').removeAttr("href");
+        $('#div_id_votantes .selector ul.selector-chooser li a').attr('style','width:45px;height:45px;border:none;background:none;text-indent:unset!important;');
+        $('#div_id_votantes .selector ul.selector-chooser li a').addClass('btn rounded-circle d-flex justify-content-center align-items-center');
+        $('#div_id_votantes .selector ul.selector-chooser li a.selector-add').css('background', 'var(--bs-success)');
+        $('#div_id_votantes .selector ul.selector-chooser li a.selector-remove').css('background', 'var(--bs-danger)');
+        $('#div_id_votantes .selector ul.selector-chooser li a.selector-add').html('<i class="fas fa-plus text-white"></i>');
+        $('#div_id_votantes .selector ul.selector-chooser li a.selector-remove').html('<i class="fas fa-minus text-white"></i>');
+
+        // VOTANTES ELEGIDOS
+        $('#div_id_votantes .selector .selector-chosen').addClass('mx-auto');
+        $('#div_id_votantes .selector .selector-chosen h2').replaceWith('<label class="form-label text-start">Votantes elegidos</label>');
+        $('#div_id_votantes .selector .selector-chosen select').addClass('form-select');
+        $('#div_id_votantes .selector .selector-chosen select').attr('style', 'height:unset!important;border:1px solid #ced4da!important;');
+        $('#div_id_votantes .selector .selector-chosen select').attr('size','5');
+        $('#div_id_votantes .selector .selector-chosen a').remove();
+    })  
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Operativos{% endblock %}
+
+{% block links %}
+<link href="{% static 'DataTables/DataTables-1.12.1/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="container-fluid px-lg-4 px-md-2 px-sm-0 {% if user.tema == 'dark' %}text-light{% else %}text-dark{% endif %}">
+        <h1 class="mt-4">Operativos</h1>
+        <ol class="breadcrumb mb-4 {% if user.tema == 'dark' %}text-body{% else %}text-secondary{% endif %}">
+            <li class="breadcrumb-item">Tabla de administración</li>
+        </ol>
+        <div class="card mb-4 {% if user.tema == 'dark' %}bg-dark text-white{% else %}bg-light text-dark{% endif %} shadow-lg">
+            <div class="card-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-table me-1"></i>Operativos
+                    </div>
+                    <a class="btn btn-primary" href="{% url 'agendar_operativo' %}">Agendar</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="operativosTable" class="table table-striped table-bordered align-middle w-100 {% if user.tema == 'dark' %}table-dark{% else %}table-light{% endif %}"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="asistenciaModal" tabindex="-1" aria-labelledby="asistenciaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content {% if user.tema == 'dark' %}bg-dark text-light{% else %}bg-light text-dark{% endif %} shadow">
+            <div class="modal-header">
+              <h4 class="modal-title" id="operativoTitle"></h4>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-{{ user.tema }} d-flex justify-content-center align-items-center p-4 overflow-hidden">
+                <div id="videoContent" class="d-none">
+                    <select id="cameraSelect" class="form-select d-none">
+                    </select>
+                    <video id="video" width="100%" height="100%" class="mt-2 mx-auto"></video>
+                </div>
+                <div id="dataForm" class="bg-{{ user.tema }} w-100">
+                    <form id="asistenciaForm" action="" method="post">
+                        {% csrf_token %}
+                        <fieldset>
+                            <div class="col-12 mb-3">
+                                <label for="cedulaVotante" class="form-label">Cédula del votante</label>
+                                <div class="input-group">
+                                    <input type="text" id="cedulaVotante" class="form-control disabled" name="votante" value="" required/>
+                                    <button onclick="startQrScaner();" class="input-group-text btn btn-success"><i class="fas fa-qrcode"></i></button>
+                                </div>
+                            </div>
+                            <label for="beneficiosContainer" class="form-label">Entrega de beneficio</label>
+                            <div id="beneficiosContainer" class="d-flex flex-row">
+                            </div>
+                            <input type="hidden" id="beneficiosInput" name="beneficios"/>
+                            <input type="hidden" id="operativoId" name="operativo"/>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-center align-items-center">
+                <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
+                <button onclick="sendForm();" id="confirmarBtn" class="btn btn-sm btn-primary">Confirmar</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
+        <div id="toastErroEle" 
+        class="toast align-items-center border-0 text-bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div id="messageError" class="toast-body">
+                    Default
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/jquery-3.5.1.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/dataTables.bootstrap5.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#operativosTable').DataTable( {
+            language: {
+                url: "{% static 'DataTables/es_ES.json' %}"
+            },
+            processing: true,
+            serverSide: false,
+            scrollX: true,
+            info: false,
+            order: [[0,"asc"]],
+            data: {{ data | safe }},
+            columns: [
+                {
+                    data: "id",
+                    name: "id",
+                    title: "ID",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "fecha",
+                    name: "fecha",
+                    title: "Fecha",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "titulo",
+                    name: "titulo",
+                    title: "Título",
+                    class: "text-start",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "[]",
+                    name: "beneficios",
+                    title: "Beneficios",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "[]",
+                    name: "action",
+                    title: "Acciones",
+                    visible: true,
+                    searchable: false,
+                }
+            ],
+            columnDefs: [
+                { className: "text-center text-nowrap", targets: "_all" },
+                { className: "fw-600", targets: [0,1,2,3,4] }
+            ],
+            fnCreatedRow: function(elemt, data, iDataIndex) {
+                let opID = data.id
+                let opTitulo = data.titulo
+                let opBeneficios = data.beneficios
+                let opFecha = new Date(data.fecha.split(' ')[0].split('-').reverse())
+                let today = new Date()
+                let votantes = {{ votantes|length }}
+
+                let opBeList = []
+                opBeneficios.forEach(b => {
+                    opBeList.push([`${b[0]}|${b[1]}|${b[2]}`])
+                })
+                fechaHTML = (opFecha.getFullYear() === today.getFullYear() && opFecha.getMonth() === today.getMonth() && opFecha.getDate() === today.getDate())
+                ? `<a class="tt link link-success fs-md" data-bs-title="Asistencia" onclick="marcarAsistencia('${opID}', '${opTitulo}', '${opBeList}');"><i class="fa-solid fa-clipboard-list"></i></a>`
+                : `<a style="pointer-events: none;" class="link link-secondary disabled fs-md" href="#!"><i class="fas fa-ellipsis"></i></a>`;
+                
+                badges = ""
+                opBeneficios.forEach(b => {
+                    let estado = (b[2] == 0)
+                    ? 'secondary'
+                    : ((b[2] <= (votantes / 2))
+                    ? 'danger'
+                    : ((b[2] < votantes)
+                    ? 'warning'
+                    : 'success'))
+
+                    badges += `<a href="#!" class="text-white fs-sm text-decoration-none py-2 fw-semibold badge me-1 bg-${estado}">${b[1]} (${b[2]})</a>`
+                })
+                $('td:eq(3)', elemt).html(badges) 
+
+                $('td:eq(4)', elemt).html(`
+                    <div class="d-flex justify-content-evenly">
+                        ${fechaHTML}
+                        {% if user.is_admin %}
+                        <a class="tt link link-secondary fs-md" data-bs-title="Administrar" href="/operativos/administrar/${opID}"><i class="fas fa-gear"></i></a>
+                        <a class="tt link link-danger fs-md" data-bs-title="Borrar" href="/operativos/eliminar/${opID}"><i class="fas fa-trash"></i></a>
+                        {% endif %}
+                    </div>
+                `)
+            }
+        } );
+    });
+</script>
+
+<!-- <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script> -->
+<script src="{% static 'js/zxing.min.js' %}"></script>
+<script type="text/javascript">
+    // ToolTip
+    const tooltipTriggerList = document.querySelectorAll('.tt')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    
+    // Modal
+    const asistemciaModalEl = document.getElementById('asistenciaModal')
+    const asistemciaModal = new bootstrap.Modal('#asistenciaModal')
+    
+    // Toast message
+    const toastErroEle = document.getElementById('toastErroEle')
+    const messageError = document.getElementById('messageError')
+    const errorToast = new bootstrap.Toast(toastErroEle)
+    
+    // QR scanner
+    const videoContent = document.getElementById('videoContent')
+    const video = document.getElementById('video')
+
+    // Form asistencia
+    const dataForm = document.getElementById('dataForm')
+    const cedulaInput = document.getElementById('cedulaVotante')
+    const operativoIdInput = document.getElementById('operativoId')
+    const operativoTitleInput = document.getElementById('operativoTitle')
+    const confirmarBtn = document.getElementById('confirmarBtn')
+    const asistenciaForm = document.getElementById('asistenciaForm')
+    const cameraSelect = document.getElementById('cameraSelect')
+
+    
+    function marcarAsistencia(opID, opTitulo, opBeneficios) {
+        $('#beneficiosContainer').html('')
+        if (opBeneficios) {
+            $('label[for="beneficiosContainer"]').removeClass('d-none')
+            switches = ""
+            opBeneficios.split(',').forEach(b => {
+                b = b.split('|')
+                let estado = (b[2] != 0)
+                ? 'checked'
+                : 'disabled'
+    
+                switches += `
+                <div class="me-2">
+                    <input type="checkbox" class="form-check-input" id="beID${b[0]}" value="${b[0]}" ${estado}>
+                    <label class="form-check-label" for="beID${b[0]}">${b[1]}</label>
+                </div>
+                `
+            })
+            $('#beneficiosContainer').html(switches)
+        }
+        else {
+            $('label[for="beneficiosContainer"]').addClass('d-none')
+        }
+        
+        operativoIdInput.value = opID
+        operativoTitleInput.innerHTML = opTitulo
+        $('#asistenciaModal').modal('show')
+    }
+
+    function startQrScaner() {
+        dataForm.classList.add('d-none')
+        videoContent.classList.remove('d-none')
+        cameraSelect.innerHTML = ''
+
+        const codeReader = new ZXing.BrowserMultiFormatReader()
+        codeReader.listVideoInputDevices()
+        .then((cameras) => {
+            let camera = cameras[0].deviceId
+            
+            if (cameras.length > 0) {
+                cameras.forEach((element) => {
+                    const cameraOption = document.createElement('option')
+                    cameraOption.text = element.label
+                    cameraOption.value = element.deviceId
+                    cameraSelect.appendChild(cameraOption)
+                })
+
+                cameraSelect.addEventListener('change',() => {
+                    camera = cameraSelect.value
+                    codeReader.reset()
+                    codeReader.decodeFromVideoDevice(camera, 'video', (result, err) => {
+                        if (result) {
+                            resultScan = result.text.split('|')
+                            cedulaInput.value = resultScan[0]
+      
+                          
+                            videoContent.classList.add('d-none')
+                            dataForm.classList.remove('d-none')
+                            codeReader.reset()
+                        }
+                        if (err && !(err instanceof ZXing.NotFoundException)) {
+                            videoContent.classList.add('d-none')
+                            dataForm.classList.remove('d-none')
+                            codeReader.reset()
+                            alert(err)
+                        }
+                    })
+                })
+                
+                cameraSelect.classList.remove('d-none')
+            }
+
+            codeReader.decodeFromVideoDevice(camera, 'video', (result, err) => {
+                if (result) {
+                    resultScan = result.text.split('|')
+                    cedulaInput.value = resultScan[0]
+
+                    if (cedulaInput.value) {
+                        codeReader.reset()
+                        videoContent.classList.add('d-none')
+                        dataForm.classList.remove('d-none')
+                    }  
+                }
+                if (err && !(err instanceof ZXing.NotFoundException)) {
+                    videoContent.classList.add('d-none')
+                    dataForm.classList.remove('d-none')
+                    codeReader.reset()
+                    alert(err)
+                }
+            })
+            
+            asistemciaModalEl.addEventListener('hide.bs.modal', event => {
+                cedulaInput.value = ""
+                operativoIdInput.value = ""
+                operativoTitleInput.value = ""
+                videoContent.classList.add('d-none')
+                dataForm.classList.remove('d-none')
+                codeReader.reset()
+            })
+
+        })
+        .catch((err) => {
+            videoContent.classList.add('d-none')
+            dataForm.classList.remove('d-none')
+            codeReader.reset()
+            alert(err)
+        })
+    }
+
+    function sendForm() {
+        var beneficios = []
+        $('input[type="checkbox"]').each(function(){
+            ($(this).prop("checked")) ? beneficios.push($(this).val()) : false
+        })
+
+        $('#beneficiosInput').val(beneficios)
+        
+        asistenciaForm.submit()
+    }
+</script>
+{% endblock %}

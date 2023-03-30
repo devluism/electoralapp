@@ -1,0 +1,115 @@
+{% load static %}
+{% load crispy_forms_tags %}
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Sistema de aula en Infortemi" />
+        <meta name="author" content="Infortemi" />
+        <title>Ingresar - Infortemi aulas</title>
+        <link href="{% static 'css/login.css' %}" rel="stylesheet" />
+        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" />
+        <link href="{% static 'fontawesome/css/all.min.css' %}" rel="stylesheet" />
+        {% block links %}{% endblock %}
+        <script src="{% static 'fontawesome/js/all.min.js' %}"></script>
+        <style>
+            .bd-placeholder-img {
+              font-size: 1.125rem;
+              text-anchor: middle;
+              -webkit-user-select: none;
+              -moz-user-select: none;
+              user-select: none;
+            }
+        
+            @media (min-width: 768px) {
+              .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+              }
+            }
+        
+            .b-example-divider {
+              height: 3rem;
+              background-color: rgba(0, 0, 0, .1);
+              border: solid rgba(0, 0, 0, .15);
+              border-width: 1px 0;
+              box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+            }
+        
+            .b-example-vr {
+              flex-shrink: 0;
+              width: 1.5rem;
+              height: 100vh;
+            }
+        
+            .bi {
+              vertical-align: -.125em;
+              fill: currentColor;
+            }
+        
+            .nav-scroller {
+              position: relative;
+              z-index: 2;
+              height: 2.75rem;
+              overflow-y: hidden;
+            }
+        
+            .nav-scroller .nav {
+              display: flex;
+              flex-wrap: nowrap;
+              padding-bottom: 1rem;
+              margin-top: -1px;
+              overflow-x: auto;
+              text-align: center;
+              white-space: nowrap;
+              -webkit-overflow-scrolling: touch;
+            }
+
+            .logo-png {
+              width: 5.5rem;
+            }
+        </style>
+    </head>
+    <body class="bg-primary">
+        {% if messages %}
+            {% for m in messages %}
+                <div class="toast-container position-fixed top-10 end-0 p-3">
+                    <div id="liveToast" 
+                    class="toast align-items-center border-0 text-bg-{{ m.tags }}" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                {{ m }}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <main class="form-signin mx-auto card shadow bg-body rounded">
+          <div class="row d-flex justify-content-center">
+            <!-- <img class="logo-png text-center" src="{% static 'images/logos/jr_ar.svg' %}" alt="Logo - Infortemi"/> -->
+            <h3 class="text-center fw-bold my-4">Sistema Electoral</h3>
+            <p class="d-block w-100 text-center">Autenticación</p>
+          </div>
+          <form action="" method="post">
+              {% csrf_token %}
+              {{ form | crispy }}
+              <button class="w-100 btn btn-lg btn-dark mt-2 mb-4" value="ingresar" type="submit">Acceder</button>
+              <a href="/admin/" class="d-block link-secondary text-center">Página administrativa</a>
+          </form>
+        </main>
+
+        <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+        <script>
+            const toastEl = document.getElementById('liveToast')
+            if (toastEl) {
+                const toast = new bootstrap.Toast(toastEl)
+                toast.show()
+            }
+        </script>
+        {% block scripts %}{% endblock %}
+    </body>
+</html>

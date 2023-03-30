@@ -1,0 +1,22 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background: linear-gradient(45deg, #072357, #ffffff, #da121a);
+}
+
+.form-signin {
+  width: 450px;
+  max-width: 450px;
+  padding: 30px 50px;
+}
+
+.form-signin .logo-png {
+  max-width: 50%;
+}

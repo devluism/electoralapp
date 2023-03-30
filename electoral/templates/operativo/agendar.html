@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Agendar operativo{% endblock %}
+{% block content %}
+<main>
+    <div class="container-fluid px-4 {% if user.tema == 'dark' %}text-light{% else %}text-dark{% endif %}">
+        <h1 class="mt-4">Agendar Operativo</h1>
+        <ol class="breadcrumb mb-4 {% if user.tema == 'dark' %}text-body{% else %}text-secondary{% endif %}">
+            <li class="breadcrumb-item"><a href="{% url 'operativos' %}">Operativos</a></li>
+            <li class="breadcrumb-item">Agendar</li>
+        </ol>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-6 mx-auto">
+            <div class="card {% if user.tema == 'dark' %}bg-dark text-light{% else %}bg-light text-dark{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-people-group me-2"></i>Nuevo operativo
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form action="" method="post" class="px-lg-4 py-lg-2">
+                        {% csrf_token %}
+                        {{ form | crispy }}
+                        <div class="col-12 d-flex align-items-center justify-content-around mt-4 mb-0">
+                            <a class="btn btn-secondary" href="{% url 'operativos' %}" role="button">Cancelar</a>
+                            <button class="btn btn-primary" type="submit" value="Agendar">Agendar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content {% if user.tema == 'dark' %}bg-dark text-light{% else %}bg-light text-dark{% endif %} shadow">
+            <div class="modal-header">
+              <h5 class="modal-title" id="qrModalLabel">Escanear Cédula QR</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reader" width="600px" height="600px"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+          </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/html5-qrcode.min.js' %}"></script>
+<script type="text/javascript">
+    const direccionInput = document.getElementById('id_direccion')
+    direccionInput.attributes.rows.value = "4"
+    direccionInput.style.resize = "none"
+
+    const myModalEl = new bootstrap.Modal('#qrModal')
+
+    const nombres_apellidos = document.getElementById('id_nombre')
+    const cedula = document.getElementById('id_cedula')
+    const telefono = document.getElementById('id_telefono')
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // handle the scanned code as you like, for example:
+        resultScan = decodedText.split('|')
+        myModalEl.toggle()
+        cedula.value = resultScan[0] || ""
+        nombres_apellidos.value = `${resultScan[1]} ${resultScan[2]}` || ""
+        telefono.value = resultScan[3] || ""
+    }
+    
+    function onScanFailure(error) {
+        // handle scan failure, usually better to ignore and keep scanning.
+        // for example:
+        console.warn(`Error al escanear = ${error}`)
+        //myModalEl.toggle()
+    }
+          
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { 
+            //formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
+            fps: 10, 
+            qrbox: {width: 250, height: 250},
+        }
+    )
+        
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure)   
+</script>
+{% endblock %}

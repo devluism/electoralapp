@@ -1,0 +1,29 @@
+<div class="modal-header bg-primary">
+    <h5 class="modal-title fw-700 text-white" id="votanteRegistradoModalTitle">{{ votante.nombre|title }}</h5>
+    <button type="button" class="btn-close box-shadow-0" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body w-100">
+    <div class="row">
+        <span class="text-muted">Cédula:</span>
+        <h6 class="h6">{{ votante.cedula }}</h6>
+    </div>
+    <div class="row">
+        <span class="text-muted">Dirigente:</span>
+        <h6 class="h6">{{ votante.dirigente_related.first|default:"N/A" }}</h6>
+    </div>
+    <div class="row">
+        <span class="text-muted">C. Votación (Mesa):</span>
+        <h6 class="h6">
+            {% if votante.centro_votacion %}
+                {{ votante.centro_votacion }} ({{ votante.mesa|default:"N/A" }})
+            {% else %}
+            N/A
+            {% endif %}
+        </h6>
+    </div>
+    <div class="row">
+        <span class="text-muted">Fecha:</span>
+        <h6 class="h6">{{ votante.fecha_inscripcion|date:"d-m-Y H:i" }}</h6>
+    </div>
+</div>

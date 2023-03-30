@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Inicio{% endblock %}
+{% block links %}
+<link href="{% static 'DataTables/DataTables-1.12.1/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="container-fluid px-4 {% if user.tema == 'dark' %}text-light{% else %}text-dark{% endif %}">
+        <h1 class="mt-4">Resumen</h1>
+        <ol class="breadcrumb mb-4 {% if user.tema == 'dark' %}text-body{% else %}text-secondary{% endif %}">
+            <li class="breadcrumb-item">Datos del sistema</li>
+        </ol>
+        <div class="row">
+            <div class="col-12 col-sm-4 mb-4">
+                <div class="card bg-primary text-white h-100 shadow">
+                    <div class="card-body">Votantes registrados <span class="fs-5 fw-semibold ms-2">{{ votantes|length }}</span></div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="/votantes">Ver detalles</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-4 mb-4">
+                <div class="card bg-success text-white h-100 shadow">
+                    <div class="card-body">Operativos realizados <span class="fs-5 fw-semibold ms-2">{{ operativos|length }}</span></div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="{% url 'operativos' %}">Ver detalles</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-4 mb-4">
+                <div class="card bg-danger text-white h-100 shadow">
+                    <div class="card-body">Beneficios faltantes <span class="fs-5 fw-semibold ms-2">{{ beneficios_faltantes|length }}</span></div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="{% url 'beneficios' %}">Ver detalles</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            {% comment %} <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-secondary text-white h-100 shadow">
+                    <div class="card-body">Registro de eventos</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="#">Ver detalles</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div> {% endcomment %}
+        </div>
+
+        <div class="row">
+            <div class="col-xl-6">
+                <div class="card mb-4 bg-{{ user.tema }} {% if user.tema == 'dark' %}text-white{% else %}text-dark{% endif %} shadow">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line me-1"></i>
+                        Asistencia por operativo
+                    </div>
+                    <div class="card-body"><canvas id="areaChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card mb-4 bg-{{ user.tema }} {% if user.tema == 'dark' %}text-white{% else %}text-dark{% endif %} shadow">
+                    <div class="card-header">
+                        <i class="fas fa-chart-column me-1"></i>
+                        Beneficios por cantidad
+                    </div>
+                    <div class="card-body"><canvas id="barChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 {% if user.tema == 'dark' %}bg-dark text-light{% else %}bg-light text-dark{% endif %} shadow">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                Votatantes
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="votantesTable" class="table table-striped w-100 {% if user.tema == 'dark' %}table-dark{% else %}table-light{% endif %}"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/jquery-3.5.1.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/dataTables.bootstrap5.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#votantesTable').DataTable({
+            language: {
+                url: "{% static 'DataTables/es_ES.json' %}",
+            },
+            processing: true,
+            serverSide: false,
+            scrollX: true,
+            ordering: true,
+            lengthChange: false,
+            pageLength: 10,
+            info: false,
+            order: [[0,'asc']],
+            ajax: {
+                url: "{% url 'datatable_votantes' %}",
+                method: 'GET',
+            },
+            columns: [
+                {
+                    data: "codigo",
+                    name: "codigo",
+                    title: "#",
+                    className: "text-center",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "nombre",
+                    name: "nombre",
+                    title: "Nombre",
+                    className: "text-start text-nowrap",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "cedula",
+                    name: "cedula",
+                    title: "Cédula",
+                    className: "text-center text-nowrap",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "fecha_inscripcion",
+                    name: "fecha_inscripcion",
+                    title: "Fecha",
+                    className: "text-center text-nowrap",
+                    visible: true,
+                    searchable: true,
+                },
+            ],
+            fnCreatedRow: function(elemt, data, iDataIndex) {
+                $('td:eq(1)', elemt).addClass('fw-semibold')
+            },
+        });
+    });
+</script>
+
+<script src="{% static 'Chart/package/dist/chart.min.js' %}"></script>
+<script type="text/javascript">
+    let labels = [
+        {% for operativo in operativos %}
+            '{{ operativo.titulo }}'{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ]
+
+    let data = [
+        {% for asistencia in asistencias %}
+            {{ asistencia }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ]
+
+
+    let ctx = document.getElementById("areaChart");
+    const graficoLineal = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Asistencias",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(2,117,216,0.2)",
+                    borderColor: "rgba(2,117,216,1)",
+                    pointRadius: 5,
+                    pointBackgroundColor: "rgba(2,117,216,1)",
+                    pointBorderColor: "rgba(255,255,255,0.8)",
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: "rgba(2,117,216,1)",
+                    pointHitRadius: 50,
+                    pointBorderWidth: 2,
+                    data: data,
+                },
+                { fill: '3' },
+            ],
+        },
+        options: {            
+            plugins: {
+                title: {
+                    display: false,
+                    text: `Ultimos ${labels.length}`,
+                },
+                legend: {
+                    display: false,
+                }
+            }
+        }
+    });
+    
+</script>
+<script type="text/javascript">
+    let barLabels = [
+        {% for b in beneficios %}
+            '{{ b.nombre }}'{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ]
+    let barData = [
+        {% for b in beneficios %}
+            {{ b.cantidad }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ]
+    console.log(labels, data)
+
+    const ctxBar = document.getElementById('barChart');
+    const myLineChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: barLabels,
+            datasets: [{
+                label: 'Beneficios escasos',
+                data: barData,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                title: {
+                    display: false,
+                    text: '',
+                },
+                legend: {
+                    display: false,
+                }
+            }
+        },
+    }); 
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Residencias{% endblock %}
+{% block links %}
+<link href="{% static 'DataTables/DataTables-1.12.1/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+{% endblock %}
+{% block content %}
+<main>
+    <div class="container-fluid px-4 {% if user.tema == 'dark' %}text-light{% else %}text-dark{% endif %}">
+        <h1 class="mt-4">Residencias registradas</h1>
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item {% if user.tema == 'dark' %}text-body{% else %}text-secondary{% endif %}">Tabla de administración</li>
+        </ol>
+        <div class="card mb-4 {% if user.tema == 'dark' %}bg-dark text-white{% else %}bg-light text-dark{% endif %} shadow-lg">
+            <div class="card-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-table me-1"></i>Residencias
+                    </div>
+                    <a class="btn btn-primary" href="/admin/electoral/residencia/add/">Registrar</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="residenciasTable" class="table table-striped table-bordered align-middle w-100 {% if user.tema == 'dark' %}table-dark{% else %}table-light{% endif %}"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/jquery-3.5.1.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'DataTables/DataTables-1.12.1/js/dataTables.bootstrap5.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        let table = $('#residenciasTable').DataTable({
+            language: {
+                url: "{% static 'DataTables/es_ES.json' %}",
+            },
+            processing: true,
+            serverSide: false,
+            scrollX: true,
+            ordering: true,
+            pageLength: 10,
+            info: false,
+            order: [[0,'asc']],
+            ajax: {
+                url: "{% url 'datatable_residencias' %}",
+                method: 'GET',
+            },
+            columns: [
+                {
+                    data: "numero_casa",
+                    name: "numero_casa",
+                    title: "N° Casa",
+                    className: "text-center text-nowrap",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "barriada",
+                    name: "barriada",
+                    title: "Barriada",
+                    className: "text-center",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "sector",
+                    name: "sector",
+                    title: "Sector",
+                    className: "text-center",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "[]",
+                    name: "votantes",
+                    title: "Votantes",
+                    className: "text-start",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                   data: "[]",
+                   name: "action",
+                   title: "Acción",
+                   className: "text-center",
+                   visible: true,
+                   searchable: true,
+                },
+            ],
+            fnCreatedRow: function(elemt, data, iDataIndex) {
+                let badges = ''
+                data.votantes.forEach(v => {
+                    badges += `<a href="/votantes/editar/${v.id}" class="btn btn-sm btn-primary rounded-pill text-nowrap">${v.nombre} (${v.cedula})</a>`
+
+                })
+                $('td:eq(3)', elemt).addClass('d-flex gap-1 flex-wrap')
+                $('td:eq(3)', elemt).html(badges)
+                
+                $('td:eq(4)', elemt).html(`
+                    <div class="d-flex justify-content-evenly">
+                        <a class="link link-secondary" href="/admin/electoral/residencia/${+data.id}/change/"><i class="fas fa-edit"></i></a>
+                        <a class="link link-danger" href="/admin/electoral/residencia/${+data.id}/delete/"><i class="fas fa-trash"></i></a>                        
+                    </div>
+                `)
+            },
+        });
+
+        {% if not user.is_admin %}
+        table.column( 4 ).visible( false );
+        {% endif %}
+    });
+</script>
+{% endblock %}
