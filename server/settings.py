@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='django-insecure-i)sdf$oti+jt5
 #DEBUG = 'NOT_DEBUG' not in os.environ
 DEBUG = True
 
-ALLOWED_HOSTS = ['129.153.239.114', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['129.153.239.114', '127.0.0.1', 'localhost']
 
 # RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 # if RENDER_EXTERNAL_HOSTNAME:
@@ -153,7 +153,7 @@ WSGI_APPLICATION = 'server.wsgi.application'
 # }
 DATABASES = {
     'default': dj_database_url.config(
-        default = 'sqlite:///' + os.path.join(BASE_DIR, 'database'),
+        default = 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
         conn_max_age = 600
     )
 }
