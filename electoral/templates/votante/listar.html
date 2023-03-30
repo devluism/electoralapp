@@ -51,8 +51,8 @@
             },
             columns: [
                 {
-                    data: "codigo",
-                    name: "codigo",
+                    data: "id",
+                    name: "id",
                     title: "#",
                     className: "text-center",
                     visible: true,
@@ -85,7 +85,15 @@
                 {
                     data: "centro_votacion",
                     name: "centro_votacion",
-                    title: "C. Votación (Mesa)",
+                    title: "Mesa",
+                    className: "text-center text-nowrap",
+                    visible: true,
+                    searchable: true,
+                },
+                {
+                    data: "corregimiento",
+                    name: "corregimiento",
+                    title: "Corregimiento",
                     className: "text-center text-nowrap",
                     visible: true,
                     searchable: true,
@@ -101,7 +109,7 @@
             ],
             fnCreatedRow: function(elemt, data, iDataIndex) {
                 $('td:eq(1)', elemt).addClass('fw-semibold')
-                $('td:eq(5)', elemt).html(`
+                $('td:eq(6)', elemt).html(`
                     <div class="d-flex justify-content-evenly">
                         <a class="tt link link-secondary" data-bs-title="Editar" href="/votantes/editar/${+data.id}"><i class="fas fa-edit"></i></a>
                         <a class="tt link link-danger" data-bs-title="Borrar" href="/votantes/eliminar/${+data.id}"><i class="fas fa-trash"></i></a>                        

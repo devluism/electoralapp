@@ -181,7 +181,6 @@ class Votante(models.Model):
     bloqueado=models.BooleanField(default=False)
     # foto=models.FileField(upload_on="images/votantes/")
     # codigo=models.CharField(verbose_name="Código",max_length=50,null=True,blank=True)
-    codigo=models.PositiveIntegerField(verbose_name="Código",null=True,blank=True)
     nombre=models.CharField(max_length=150)
     cedula=models.CharField(verbose_name="Cédula",max_length=50,unique=True)
     fecha_nacimiento=models.DateField(null=True,blank=True)

@@ -73,7 +73,7 @@ class VotanteForm(forms.ModelForm):
     
     class Meta:
         model = Votante
-        fields = ['codigo','nombre','cedula','fecha_nacimiento','sexo','telefono','dirigente','centro_votacion','mesa','partido_politico']
+        fields = ['nombre','cedula','fecha_nacimiento','sexo','telefono','dirigente','centro_votacion','mesa','partido_politico']
 
 class ResidenciaForm(forms.ModelForm):
 
@@ -116,7 +116,7 @@ class CorregimientoForm(forms.ModelForm):
     
     class Meta:
         model = Corregimiento
-        fields = ('nombre','residencias','votantes')
+        fields = ('__all__')
 
 # class CandidatoForm(forms.ModelForm):
 

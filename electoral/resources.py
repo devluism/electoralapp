@@ -93,17 +93,17 @@ class VotanteResource(resources.ModelResource):
     
     class Meta:
         model = Votante
-        import_id_fields = ('codigo',)
-        fields = ('codigo','nombre','cedula','fecha_nacimiento','sexo','telefono','dirigente','centro_votacion','partido_politico')
+        import_id_fields = ('cedula',)
+        fields = ('nombre','cedula','fecha_nacimiento','sexo','telefono','dirigente','centro_votacion','partido_politico')
         
 class VotanteAdmin(ImportExportModelAdmin):
     resource_class = VotanteResource
-    list_display = ('codigo','nombre','cedula','bloqueado')
+    list_display = ('nombre','cedula','bloqueado')
     list_editable = ('bloqueado',)
     list_display_links = ('nombre',)
     list_filter = ('bloqueado',)
-    search_fields = ('codigo', 'nombre', 'cedula')
-    ordering = ('codigo',)
+    search_fields = ('nombre', 'cedula')
+    ordering = ('cedula',)
 
 class ResidenciaResource(resources.ModelResource):
     

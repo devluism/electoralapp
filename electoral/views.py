@@ -49,10 +49,16 @@ def inicio(request):
     # operativos = Operativo.objects.filter(fecha__lt=(datetime.today() - timedelta(days=1)))[:4]
     mitad_votantes = (len(votantes) / 100) * 25
     beneficios = Beneficio.objects.filter(cantidad__lt=mitad_votantes).order_by('cantidad').values()[:4]    
+    
     operativos = Operativo.objects.all()[:4]
     asistencias = []
     for op in operativos:
         asistencias.append(op.asistencias.all().count())
+    
+    corregimientos = Corregimiento.objects.all()
+    votantes_corregimiento = []
+    for co in corregimientos:
+        votantes_corregimiento.append(co.votantes.all().count())
     
     ctx = {
         "votantes": votantes,
@@ -61,6 +67,8 @@ def inicio(request):
         "beneficios": beneficios,
         "operativos": operativos,
         "asistencias": asistencias,
+        "corregimientos": corregimientos,
+        "votantes_corregimiento": votantes_corregimiento,
     }
 
     return render(request, "index.html", ctx)
@@ -327,7 +335,10 @@ def datatable_votantes(request):
 
         # if d_related:
         #     dirigente = f"{d_related.dirigente.nombre} ({d_related.dirigente.cedula})"
-
+        # residencia = Residencia.objects.filter(votantes=vo).first()
+        corregimiento = Corregimiento.objects.filter(votantes=vo).first()
+        es_candidato = ' <i class="fa-solid fa-user-tie me-1"></i>' if corregimiento and corregimiento.candidato == vo else ""
+        
         if vo.centro_votacion:
             cv = f"{vo.centro_votacion} {f'({vo.mesa})' if vo.mesa else '(N/A)'}"
         else:
@@ -335,9 +346,9 @@ def datatable_votantes(request):
 
         data.append({
             "id": vo.pk,
-            "codigo": vo.codigo,
             "nombre": vo.nombre.capitalize(),
             "cedula": vo.cedula,
+            "corregimiento": f"{es_candidato}{corregimiento.nombre}" if corregimiento else "N/A",
             "dirigente": f"{vo.dirigente.nombre.capitalize()} ({vo.dirigente.cedula})" if vo.dirigente else "N/A",
             "centro_votacion": cv.capitalize() if cv != "" else "N/A",
             "fecha_inscripcion": vo.fecha_inscripcion.strftime("%d-%m-%Y %H:%M"),
@@ -578,12 +589,14 @@ def listar_dirigentes(request):
 def datatable_dirigentes(request):
     dirigentes = Dirigente.objects.all()    
     data = []
-    for di in dirigentes:   
+    for di in dirigentes:        
+        vo = Votante.objects.filter(dirigente=di)
+            
         data.append({
             "id": di.pk,
             "nombre": di.nombre+' (apoyo)' if di.es_apoyo else di.nombre,
             "cedula": di.cedula,
-            "telefono": di.telefono,
+            "votantes": vo.count(),
         })
             
     return JsonResponse({'data': data})

@@ -52,22 +52,31 @@
         </div>
 
         <div class="row">
-            <div class="col-xl-6">
+            <div class="col-lg-4">
+                <div class="card mb-4 bg-{{ user.tema }} {% if user.tema == 'dark' %}text-white{% else %}text-dark{% endif %} shadow">
+                    <div class="card-header">
+                        <i class="fa-solid fa-chart-pie me-1"></i>
+                        Votantes por corregimiento
+                    </div>
+                    <div class="card-body"><canvas id="pieChart" width="100%" height="100%" style="max-height: 200px;"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
                 <div class="card mb-4 bg-{{ user.tema }} {% if user.tema == 'dark' %}text-white{% else %}text-dark{% endif %} shadow">
                     <div class="card-header">
                         <i class="fas fa-chart-line me-1"></i>
                         Asistencia por operativo
                     </div>
-                    <div class="card-body"><canvas id="areaChart" width="100%" height="40"></canvas></div>
+                    <div class="card-body"><canvas id="lineChart" width="100%" height="100%" style="max-height: 200px;"></canvas></div>
                 </div>
             </div>
-            <div class="col-xl-6">
+            <div class="col-lg-4">
                 <div class="card mb-4 bg-{{ user.tema }} {% if user.tema == 'dark' %}text-white{% else %}text-dark{% endif %} shadow">
                     <div class="card-header">
                         <i class="fas fa-chart-column me-1"></i>
                         Beneficios por cantidad
                     </div>
-                    <div class="card-body"><canvas id="barChart" width="100%" height="40"></canvas></div>
+                    <div class="card-body"><canvas id="barChart" width="100%" height="100%" style="max-height: 200px;"></canvas></div>
                 </div>
             </div>
         </div>
@@ -111,8 +120,8 @@
             },
             columns: [
                 {
-                    data: "codigo",
-                    name: "codigo",
+                    data: "id",
+                    name: "id",
                     title: "#",
                     className: "text-center",
                     visible: true,
@@ -135,6 +144,14 @@
                     searchable: true,
                 },
                 {
+                    data: "corregimiento",
+                    name: "corregimiento",
+                    title: "Corregimiento",
+                    className: "text-center text-nowrap",
+                    visible: true,
+                    searchable: true,
+                },
+                {
                     data: "fecha_inscripcion",
                     name: "fecha_inscripcion",
                     title: "Fecha",
@@ -150,26 +167,61 @@
     });
 </script>
 
-<script src="{% static 'Chart/package/dist/chart.min.js' %}"></script>
+<script src="{% static 'Chart/package/dist/chart.umd.js' %}"></script>
 <script type="text/javascript">
-    let labels = [
+    let pieLabels = [
+        {% for corregimiento in corregimientos %}
+            '{{ corregimiento.nombre }}'{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ]
+
+    let pieData = [
+        {% for votantes in votantes_corregimiento %}
+            {{ votantes }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ]
+
+    let pieCtx = document.getElementById("pieChart");
+    const pieChart = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: pieLabels,
+            datasets: [
+                {
+                    label: "Votantes",
+                    data: pieData,
+                },
+            ],
+        },
+        options: {            
+            plugins: {
+                title: {
+                    display: false,
+                },
+                legend: {
+                    display: false,
+                }
+            }
+        }
+    });
+    
+    let lineLabels = [
         {% for operativo in operativos %}
             '{{ operativo.titulo }}'{% if not forloop.last %}, {% endif %}
         {% endfor %}
     ]
-
-    let data = [
+    
+    let lineData = [
         {% for asistencia in asistencias %}
             {{ asistencia }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
     ]
-
-
-    let ctx = document.getElementById("areaChart");
-    const graficoLineal = new Chart(ctx, {
+    
+    let lineCtx = document.getElementById("lineChart");
+    const lineChart = new Chart(lineCtx, {
         type: 'line',
         data: {
-            labels: labels,
+            labels: lineLabels,
             datasets: [
                 {
                     label: "Asistencias",
@@ -183,7 +235,7 @@
                     pointHoverBackgroundColor: "rgba(2,117,216,1)",
                     pointHitRadius: 50,
                     pointBorderWidth: 2,
-                    data: data,
+                    data: lineData,
                 },
                 { fill: '3' },
             ],
@@ -192,7 +244,7 @@
             plugins: {
                 title: {
                     display: false,
-                    text: `Ultimos ${labels.length}`,
+                    text: `Ultimos ${lineLabels.length}`,
                 },
                 legend: {
                     display: false,
@@ -200,9 +252,7 @@
             }
         }
     });
-    
-</script>
-<script type="text/javascript">
+
     let barLabels = [
         {% for b in beneficios %}
             '{{ b.nombre }}'{% if not forloop.last %}, {% endif %}
@@ -213,10 +263,11 @@
             {{ b.cantidad }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
     ]
-    console.log(labels, data)
 
-    const ctxBar = document.getElementById('barChart');
-    const myLineChart = new Chart(ctxBar, {
+    console.log(barLabels, barData)
+    
+    let barCtx = document.getElementById('barChart');
+    const barChart = new Chart(barCtx, {
         type: 'bar',
         data: {
             labels: barLabels,
