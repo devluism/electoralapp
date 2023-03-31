@@ -756,7 +756,7 @@ def eliminar_beneficio(request, id):
 def listar_eventos(request, tipo):
     eventos = EventoLog.objects.filter(tipo=tipo) if tipo != None else EventoLog.objects.all()
    
-    print(EventoLog.tipo.attname)
+    print(EventoLog.objects)
     
     ctx = {
         "eventos": eventos,
