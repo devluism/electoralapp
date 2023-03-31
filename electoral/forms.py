@@ -57,10 +57,10 @@ class PartidoPoliticoForm(forms.ModelForm):
         fields = ['nombre']
 
 class DirigenteForm(forms.ModelForm):
-
+    votantes = forms.MultipleChoiceField(choices=Votante.objects.all())
     class Meta:
         model = Dirigente
-        fields = '__all__'
+        fields = ['nombre', 'cedula', 'telefono', 'es_apoyo', 'votantes']
 
 class VotanteForm(forms.ModelForm):
     fecha_nacimiento = forms.DateField(

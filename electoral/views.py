@@ -1,3 +1,4 @@
+import json
 from django.http import JsonResponse
 
 from django.template.loader import render_to_string
@@ -10,7 +11,7 @@ from .models import (
     Dirigente, Beneficio, 
     Operativo, Votante, 
     Residencia, Corregimiento, Entrega,
-    AsistenciaIndividual, AsistenciaColectiva)
+    AsistenciaIndividual, AsistenciaColectiva, EventoLog)
 
 from .forms import (
     CustomCreationForm, BeneficioForm, 
@@ -36,6 +37,7 @@ def registro(request):
     else:
         return redirect(to="inicio")
     
+
 """
     INICIO
 """
@@ -125,6 +127,7 @@ def opciones(request):
         return redirect(to="opciones")
     
     return render(request, "opciones.html")
+
 
 """
     OPERATIVO
@@ -316,6 +319,7 @@ def datatable_asistencias(request, id):
             
     return JsonResponse({'data': data}, safe=False)
 
+
 """
     VOTANTE
 """
@@ -337,7 +341,7 @@ def datatable_votantes(request):
         #     dirigente = f"{d_related.dirigente.nombre} ({d_related.dirigente.cedula})"
         # residencia = Residencia.objects.filter(votantes=vo).first()
         corregimiento = Corregimiento.objects.filter(votantes=vo).first()
-        es_candidato = ' <i class="fa-solid fa-user-tie me-1"></i>' if corregimiento and corregimiento.candidato == vo else ""
+        es_candidato = ' <i class="fa-solid fa-street-view me-1"></i>' if corregimiento and corregimiento.candidato == vo else ""
         
         if vo.centro_votacion:
             cv = f"{vo.centro_votacion} {f'({vo.mesa})' if vo.mesa else '(N/A)'}"
@@ -348,7 +352,7 @@ def datatable_votantes(request):
             "id": vo.pk,
             "nombre": vo.nombre.capitalize(),
             "cedula": vo.cedula,
-            "corregimiento": f"{es_candidato}{corregimiento.nombre}" if corregimiento else "N/A",
+            "corregimiento": f"{es_candidato}{corregimiento.nombre} ({corregimiento.votantes.count()})" if corregimiento else "N/A",
             "dirigente": f"{vo.dirigente.nombre.capitalize()} ({vo.dirigente.cedula})" if vo.dirigente else "N/A",
             "centro_votacion": cv.capitalize() if cv != "" else "N/A",
             "fecha_inscripcion": vo.fecha_inscripcion.strftime("%d-%m-%Y %H:%M"),
@@ -410,6 +414,7 @@ def eliminar_votante(request, id):
         messages.warning(request, "No tienes permisos de eliminar votantes", extra_tags="danger")
         
     return redirect(to="votantes")
+
 
 """
     RESIDENCIA
@@ -495,6 +500,7 @@ def eliminar_residencia(request, id):
         messages.warning(request, "No tienes permisos de eliminar residencias", extra_tags="danger")
         
     return redirect(to="residencias")
+
 
 """
     CORREGIMIENTO
@@ -621,21 +627,39 @@ def agregar_dirigente(request):
 @login_required(redirect_field_name='')
 def editar_dirigente(request, id):
     dirigente = get_object_or_404(Dirigente, id=id)
+    di_votante = Votante.objects.filter(cedula=dirigente.cedula).first()
+    votantes = Votante.objects.exclude(cedula=dirigente.cedula)
     
     if request.user.is_admin:
         ctx = {
-            "form": DirigenteForm(instance=dirigente),
-            "dirigente": dirigente
+            "dirigente": dirigente,
+            "votantes": votantes if votantes else None,
         }
         
         if request.method == "POST":
-            data = DirigenteForm(data=request.POST, instance=dirigente)
-            if data.is_valid():
-                data.save()
-                messages.info(request, "Dirigente editado correctamente")
-                return redirect(to="dirigentes")
-            else:
-                ctx["form"] = data
+            for vo in votantes.filter(dirigente=dirigente):
+                vo.dirigente = None
+                vo.save()
+            
+            if request.POST.get("votantes", False):
+                data = json.loads(str(request.POST).replace("<QueryDict: ", "").replace(">", "").replace("'", "\""))
+                for vo in data.get("votantes", None):
+                    v = get_object_or_404(Votante, id=vo)
+                    v.dirigente = dirigente
+                    v.save()
+                
+            di_votante.nombre = request.POST.get("nombre", dirigente.nombre)
+            di_votante.cedula = request.POST.get("cedula", dirigente.cedula)
+            di_votante.telefono = request.POST.get("telefono", dirigente.telefono)
+            di_votante.save()
+            dirigente.nombre = request.POST.get("nombre", dirigente.nombre)
+            dirigente.cedula = request.POST.get("cedula", dirigente.cedula)
+            dirigente.telefono = request.POST.get("telefono", dirigente.telefono)
+            dirigente.es_apoyo = True if request.POST.get("es_apoyo") == "1" else False
+            dirigente.save()
+            
+            messages.info(request, "Dirigente editado correctamente")
+            return redirect(to="dirigentes")
         
         return render(request, "dirigente/editar.html", ctx)
     
@@ -653,6 +677,7 @@ def eliminar_dirigente(request, id):
         messages.warning(request, "No tienes permisos de eliminar dirigentes", extra_tags="danger")
         
     return redirect(to="dirigentes")
+
 
 """
     INVENTARIO
@@ -724,3 +749,20 @@ def eliminar_beneficio(request, id):
     return redirect(to="beneficios")
 
 
+"""
+    EVENTOS
+"""
+@login_required(redirect_field_name='')
+def listar_eventos(request, tipo):
+    eventos = EventoLog.objects.filter(tipo=tipo) if tipo != None else EventoLog.objects.all()
+   
+    print(EventoLog.tipo.attname)
+    
+    ctx = {
+        "eventos": eventos,
+    }
+    
+    if request.method == "POST":
+        pass
+        
+    return render(request, "dirigente/eventos.html", ctx)

@@ -55,4 +55,7 @@ urlpatterns = [
     path('inventario/beneficios/editar/<id>/', views.editar_beneficio, name="editar_beneficio"),
     path('inventario/beneficios/eliminar/<id>/', views.eliminar_beneficio, name="eliminar_beneficio"),
     path('inventario/beneficios/datatable', views.datatable_beneficios, name="datatable_beneficios"),
+    
+    #2 EVENTOS URLS
+    path('eventos/<tipo>', views.listar_eventos, name="eventos"),
 ]

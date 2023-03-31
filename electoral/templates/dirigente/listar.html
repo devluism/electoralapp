@@ -18,7 +18,10 @@
                     <div>
                         <i class="fas fa-table me-1"></i>Dirigentes
                     </div>
-                    <a class="btn btn-primary" href="{% url 'agregar_dirigente' %}">Agregar</a>
+                    <div class="d-flex flex-row justify-cotent-end gap-2">
+                        <a class="btn btn-secondary" href="{% url 'eventos' 1 %}"><i class="fas fa-list-ul me-1"></i>Eventos</a>
+                        <a class="btn btn-primary" href="{% url 'agregar_dirigente' %}"><i class="fas fa-plus me-1"></i>Agregar</a>
+                    </div>
                 </div>
             </div>
             <div class="card-body">

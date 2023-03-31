@@ -275,5 +275,40 @@ class AsistenciaColectiva(models.Model):
         texto = "{0} ({1}) - {2}"
         return texto.format(self.residencia, self.fecha, self.operativo)
 
+class EventoLog(models.Model):
+    ACCION = [
+        (0, "Obtener"),
+        (1, "Agregar"),
+        (2, "Actualizar"),
+        (3, "Eliminar"),
+    ]
+    TIPO = [
+        (0, "Usuario"),
+        (1, "Dirigente"),
+        (2, "Votante"),
+        (3, "Residencia"),
+        (4, "Corregimiento"),
+        (5, "Operativo"),
+        (6, "Beneficio"),
+    ]
+    ESTADO = [
+        (0, "error"),
+        (1, "success"),
+        (2, "warning"),
+        (3, "info"),
+    ]
+    mensaje=models.CharField(max_length=150)
+    accion=models.CharField(max_length=50,choices=ACCION,default=0)
+    objeto_id=models.PositiveIntegerField(null=True,blank=True)
+    tipo=models.CharField(max_length=50,choices=TIPO,default=0)
+    estado=models.CharField(max_length=50,choices=ESTADO,default=0)
+    fecha=models.DateTimeField(auto_now=True,blank=True)
 
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "evento"
+        verbose_name_plural = "eventos"
+    
+    def __str__(self):
+        return f"{self.estado} {self.tipo} ({self.accion}) {self.fecha}"
     
