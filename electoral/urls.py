@@ -58,4 +58,5 @@ urlpatterns = [
     
     #2 EVENTOS URLS
     path('eventos/<tipo>', views.listar_eventos, name="eventos"),
+    path('eventos/datatable/<tipo>', views.datatable_eventos, name="datatable_eventos"),
 ]

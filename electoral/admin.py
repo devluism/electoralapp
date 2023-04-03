@@ -10,14 +10,14 @@ from .models import (
     Usuario, Dirigente, 
     Beneficio,Operativo, PartidoPolitico, 
     Votante, Residencia, Corregimiento,
-    AsistenciaIndividual, AsistenciaColectiva)
+    AsistenciaIndividual, AsistenciaColectiva, EventoLog)
 
 from .resources import (
     CentroVotacionAdmin, 
     UserResource, DirigenteAdmin, 
     BeneficioAdmin, OperativoAdmin, PartidoPoliticoAdmin, 
     VotanteAdmin, ResidenciaAdmin, CorregimientoAdmin,
-    AsistenciaIndividualAdmin, AsistenciaColectivaAdmin)
+    AsistenciaIndividualAdmin, AsistenciaColectivaAdmin, EventoLogAdmin)
 
 # Register your models here.
 class UserCreationForm(forms.ModelForm):
@@ -107,6 +107,7 @@ admin.site.register(Residencia, ResidenciaAdmin)
 admin.site.register(Corregimiento, CorregimientoAdmin)
 admin.site.register(AsistenciaIndividual, AsistenciaIndividualAdmin)
 admin.site.register(AsistenciaColectiva, AsistenciaColectivaAdmin)
+admin.site.register(EventoLog, EventoLogAdmin)
 
 
 # ... and, since we're not using Django's built-in permissions,

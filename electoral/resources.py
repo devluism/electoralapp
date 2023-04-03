@@ -3,14 +3,14 @@ from django.contrib import admin
 from import_export import resources, fields, widgets
 from import_export.admin import ImportExportModelAdmin
 
-from .forms import ResidenciaForm, CorregimientoForm
+from .forms import ResidenciaForm, CorregimientoForm, EventoLogForm
 
 from .models import (
     CentroVotacion, Mesa, 
     Usuario, Dirigente, 
     Beneficio,Operativo, PartidoPolitico, 
     Votante, Residencia, Corregimiento,
-    AsistenciaIndividual, AsistenciaColectiva)
+    AsistenciaIndividual, AsistenciaColectiva, EventoLog)
 
 class CentroVotacionResource(resources.ModelResource):
     
@@ -150,6 +150,15 @@ class AsistenciaColectivaResource(resources.ModelResource):
         
 class AsistenciaColectivaAdmin(ImportExportModelAdmin):
     resource_class = AsistenciaColectivaResource
+    
+class EventoLogResource(resources.ModelResource):
+
+    class Meta:
+        model = EventoLog
+        fields = '__all__'
+        
+class EventoLogAdmin(ImportExportModelAdmin):
+    resource_class = EventoLogResource
     
 
         

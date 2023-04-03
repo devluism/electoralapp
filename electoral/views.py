@@ -629,6 +629,7 @@ def editar_dirigente(request, id):
     dirigente = get_object_or_404(Dirigente, id=id)
     di_votante = Votante.objects.filter(cedula=dirigente.cedula).first()
     votantes = Votante.objects.exclude(cedula=dirigente.cedula)
+    votantes_viejos = list(Votante.objects.filter(dirigente=dirigente))
     
     if request.user.is_admin:
         ctx = {
@@ -636,18 +637,38 @@ def editar_dirigente(request, id):
             "votantes": votantes if votantes else None,
         }
         
-        if request.method == "POST":
-            for vo in votantes.filter(dirigente=dirigente):
-                vo.dirigente = None
-                vo.save()
-            
+        if request.method == "POST":        
             if request.POST.get("votantes", False):
-                data = json.loads(str(request.POST).replace("<QueryDict: ", "").replace(">", "").replace("'", "\""))
-                for vo in data.get("votantes", None):
-                    v = get_object_or_404(Votante, id=vo)
-                    v.dirigente = dirigente
-                    v.save()
+                data = json.loads(str(request.POST).replace("<QueryDict: ", "").replace(">", "").replace("'", "\""))                
+                votantes_nuevos = list()
+                for votante_id in data.get("votantes", None):
+                    votante = get_object_or_404(Votante,id=votante_id)
+                    votantes_nuevos.append(votante)
                 
+                if votantes_viejos != votantes_nuevos:        
+                    for votante_viejo in votantes_viejos:
+                        if not votante_viejo in votantes_nuevos:
+                            votante_viejo.dirigente = None
+                            votante_viejo.save()
+                            EventoLog.objects.create(
+                                mensaje=f"Se eliminó el votante {votante_viejo.nombre} ({votante_viejo.cedula})",
+                                accion=3,
+                                objeto_id=dirigente.id,
+                                tipo=1,
+                                estado=1,
+                            )
+                            
+                    for votante_nuevo in votantes_nuevos:
+                        votante_nuevo.dirigente = dirigente
+                        votante_nuevo.save()
+                        EventoLog.objects.create(
+                            mensaje=f"Se eliminó el votante {votante_nuevo.nombre} ({votante_nuevo.cedula})",
+                            accion=3,
+                            objeto_id=dirigente.id,
+                            tipo=1,
+                            estado=1,
+                        )
+                    
             di_votante.nombre = request.POST.get("nombre", dirigente.nombre)
             di_votante.cedula = request.POST.get("cedula", dirigente.cedula)
             di_votante.telefono = request.POST.get("telefono", dirigente.telefono)
@@ -754,15 +775,45 @@ def eliminar_beneficio(request, id):
 """
 @login_required(redirect_field_name='')
 def listar_eventos(request, tipo):
-    eventos = EventoLog.objects.filter(tipo=tipo) if tipo != None else EventoLog.objects.all()
-   
-    print(EventoLog.objects)
-    
-    ctx = {
-        "eventos": eventos,
-    }
-    
     if request.method == "POST":
         pass
-        
-    return render(request, "dirigente/eventos.html", ctx)
+    
+    switch = {
+        "0": "usuario/eventos.html",
+        "1": "dirigente/eventos.html",
+        "2": "votante/eventos.html",
+        "3": "residencia/eventos.html",
+        "4": "corregimiento/eventos.html",
+        "5": "operativo/eventos.html",
+        "6": "beneficio/eventos.html",
+    }        
+    return render(request,  switch.get(tipo, "404.html"))
+
+def datatable_eventos(request, tipo):
+    eventos = EventoLog.objects.filter(tipo=tipo) if tipo != None else EventoLog.objects.all()
+    
+    def obtener_tipo(tipo, id):
+        switch={
+            "0": list(Usuario.objects.filter(id=id).values()),
+            "1": list(Dirigente.objects.filter(id=id).values()),
+            "2": list(Votante.objects.filter(id=id).values()),
+            "3": list(Residencia.objects.filter(id=id).values()),
+            "4": list(Corregimiento.objects.filter(id=id).values()),
+            "5": list(Operativo.objects.filter(id=id).values()),
+            "6": list(Beneficio.objects.filter(id=id).values()),
+        }
+        return switch.get(tipo, "Objeto invalido")
+    
+    data = []
+    for evento in eventos:
+        objeto = obtener_tipo(tipo, evento.objeto_id)
+
+        data.append({
+            "id": evento.pk,
+            "mensaje": evento.mensaje,
+            "accion": evento.ACCION[int(evento.accion)][1],
+            "objeto": objeto,
+            "estado": evento.ESTADO[int(evento.estado)][1],
+            "fecha": evento.fecha.strftime('%d/%m/%Y %H:%M'),
+        })
+    return JsonResponse({'data': data})

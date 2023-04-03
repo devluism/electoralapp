@@ -6,7 +6,7 @@ from .models import (
     Usuario, Dirigente, 
     Beneficio, Operativo, PartidoPolitico, 
     Votante, Residencia, Corregimiento,
-    AsistenciaIndividual, AsistenciaColectiva)
+    AsistenciaIndividual, AsistenciaColectiva, EventoLog)
 
 class CustomCreationForm(UserCreationForm):
     
@@ -147,6 +147,12 @@ class AsistenciaColectivaForm(forms.ModelForm):
 
     class Meta:
         model = AsistenciaColectiva
+        fields = '__all__'
+    
+class EventoLogForm(forms.ModelForm):
+
+    class Meta:
+        model = EventoLog
         fields = '__all__'
     
     
