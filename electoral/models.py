@@ -310,5 +310,5 @@ class EventoLog(models.Model):
         verbose_name_plural = "eventos"
     
     def __str__(self):
-        return f"{self.estado} - ({self.accion}) {self.mensaje} [{self.tipo}] {self.fecha}"
+        return f"[{self.TIPO[int(self.tipo)][1]}] ({self.ACCION[int(self.accion)][1]} - {self.ESTADO[int(self.estado)][1]}) {self.mensaje} el {self.fecha.strftime('%d/%m/%Y %H:%M')}"
     

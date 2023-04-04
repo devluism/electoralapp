@@ -1,5 +1,6 @@
 import json
 from django.http import JsonResponse
+from django.db.models import Count
 
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect, get_object_or_404
@@ -637,37 +638,32 @@ def editar_dirigente(request, id):
             "votantes": votantes if votantes else None,
         }
         
-        if request.method == "POST":        
-            if request.POST.get("votantes", False):
-                data = json.loads(str(request.POST).replace("<QueryDict: ", "").replace(">", "").replace("'", "\""))                
-                votantes_nuevos = list()
-                for votante_id in data.get("votantes", None):
-                    votante = get_object_or_404(Votante,id=votante_id)
-                    votantes_nuevos.append(votante)
+        if request.method == "POST":
+            votantes_nuevos = list(Votante.objects.filter(id__in=request.POST.getlist("votantes"))) or None
                 
-                if votantes_viejos != votantes_nuevos:        
-                    for votante_viejo in votantes_viejos:
-                        if not votante_viejo in votantes_nuevos:
-                            votante_viejo.dirigente = None
-                            votante_viejo.save()
-                            EventoLog.objects.create(
-                                mensaje=f"Se eliminó el votante {votante_viejo.nombre} ({votante_viejo.cedula})",
-                                accion=3,
-                                objeto_id=dirigente.id,
-                                tipo=1,
-                                estado=1,
-                            )
+            for votante_viejo in votantes_viejos:
+                if not votante_viejo in votantes_nuevos or not votantes_nuevos:
+                    votante_viejo.dirigente = None
+                    votante_viejo.save()
+                    EventoLog.objects.create(
+                        mensaje=f"Se eliminó al votante {votante_viejo.nombre} ({votante_viejo.cedula})",
+                        accion=3,
+                        objeto_id=dirigente.id,
+                        tipo=1,
+                        estado=1,
+                    )
+            for votante_nuevo in votantes_nuevos if votantes_nuevos != None else []:
+                if not votante_nuevo in votantes_viejos:
+                    votante_nuevo.dirigente = dirigente
+                    votante_nuevo.save()
+                    EventoLog.objects.create(
+                        mensaje=f"Se añadio al votante {votante_nuevo.nombre} ({votante_nuevo.cedula})",
+                        accion=1,
+                        objeto_id=dirigente.id,
+                        tipo=1,
+                        estado=1,
+                    )
                             
-                    for votante_nuevo in votantes_nuevos:
-                        votante_nuevo.dirigente = dirigente
-                        votante_nuevo.save()
-                        EventoLog.objects.create(
-                            mensaje=f"Se eliminó el votante {votante_nuevo.nombre} ({votante_nuevo.cedula})",
-                            accion=3,
-                            objeto_id=dirigente.id,
-                            tipo=1,
-                            estado=1,
-                        )
                     
             di_votante.nombre = request.POST.get("nombre", dirigente.nombre)
             di_votante.cedula = request.POST.get("cedula", dirigente.cedula)
@@ -775,6 +771,24 @@ def eliminar_beneficio(request, id):
 """
 @login_required(redirect_field_name='')
 def listar_eventos(request, tipo):
+    votantes = Votante.objects.exclude(dirigente=None).count()
+    dirigentes = Dirigente.objects.all().count()
+    
+    eventos = EventoLog.objects.values('accion').annotate(accion_count=Count('accion')).order_by()
+    data = []
+    for evento in eventos:
+        data.append({
+            "accion": EventoLog.ACCION[int(evento["accion"])][1],
+            "count": evento["accion_count"]
+        })
+    print(data)
+    
+    ctx = {
+        "votantes": votantes,
+        "dirigentes": dirigentes,
+        "eventos": data,
+    }
+    
     if request.method == "POST":
         pass
     
@@ -787,7 +801,7 @@ def listar_eventos(request, tipo):
         "5": "operativo/eventos.html",
         "6": "beneficio/eventos.html",
     }        
-    return render(request,  switch.get(tipo, "404.html"))
+    return render(request,  switch.get(tipo, "404.html"), ctx)
 
 def datatable_eventos(request, tipo):
     eventos = EventoLog.objects.filter(tipo=tipo) if tipo != None else EventoLog.objects.all()
