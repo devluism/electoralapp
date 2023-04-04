@@ -345,7 +345,7 @@ def datatable_votantes(request):
         es_candidato = ' <i class="fa-solid fa-street-view me-1"></i>' if corregimiento and corregimiento.candidato == vo else ""
         
         if vo.centro_votacion:
-            cv = f"{vo.centro_votacion} {f'({vo.mesa})' if vo.mesa else '(N/A)'}"
+            cv = f"{f'#{vo.mesa} ' if vo.mesa else ''}{vo.centro_votacion}"
         else:
             cv = ""
 
